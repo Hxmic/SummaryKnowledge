@@ -1,3 +1,5 @@
+// 2020年9月1日
+
 // 1. 原型链继承
 function Parent() { // 构造函数
     this.name = 'kevin';
