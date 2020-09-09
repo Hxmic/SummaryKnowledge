@@ -14,7 +14,7 @@
 function throttle(func, wait) {
     let context, args;
     let previous = 0;
-
+    
     return function() {
         let now = +new Date();
 
