@@ -167,3 +167,86 @@ var hmacsha256 = function() {
         decrypt: function() {}
     }
 }
+
+// 工厂模式
+// 简单工厂模式的优点在于：能解决多个相似的问题，减少大量冗余代码。
+
+// 简单工厂设计模式
+function CarFactory (brand, price) {
+    var car = new Object();
+    car.brand = brand;
+    car.price = price;
+    car.getPrice = function () {
+        return this.price;
+    }
+    return car;
+}
+var car1 = CarFactory("牌子A", 10000);
+var car2 = CarFactory("牌子B", 20000);
+console.log(JSON.stringify(car1)); // {"brand":"牌子A","price":10000}
+console.log(JSON.stringify(car2)); // {"brand":"牌子B","price":20000}
+console.log(typeof car1); // object
+console.log(typeof car2); // object
+console.log(car1 instanceof Object); // true
+
+// 复杂工厂设计模式
+function ComplexCarFactory(brand, price) {
+    this.brand = brand;
+    this.price = price;
+}
+
+ComplexCarFactory.prototype = {
+    constructor: ComplexCarFactory,
+    sellCar: function() {
+        var speed = this.getSpeed(this.brand);
+        console.log(this.brand + '的车子售价：' + this.price + '元人民币，限速' + speed + '公里每小时');
+    },
+
+    getSpeed: function(brand) {
+        throw new Error('父类是抽象类不能直接调用，需要子类重写该方法');
+    }
+}
+
+var CarChild = function(brand, price) {
+    this.brand = brand;
+    this.price = price;
+
+    ComplexCarFactory.call(this, brand, price)
+}
+
+CarChild.prototype = Object.create(ComplexCarFactory.prototype);
+CarChild.prototype.getSpeed = function(brand) {
+    var speed = null;
+    if(brand === '牌子C'){
+        return 100;
+    }
+    return 50;
+}
+
+var car3 = new CarChild("牌子C", 3000);
+console.log(car3); // CarChild {brand: "牌子C", price: 3000}
+console.log(car3.sellCar()); // 牌子C的车子售价：3000元人民币，限速50公里每小时
+
+function factory(role) {
+    function superAdmin() {
+        this.name = 'superAdmin';
+        this.viewPage = ['首页', '发现页', '应用数据']
+    }
+
+    function admin() {
+        this.name = 'admin';
+        this.viewPage = ['首页', '发现页', '应用数据']
+    }
+
+    switch(role) {
+        case 'superAdmin':
+            return new superAdmin();
+            break;
+        case 'admin':
+            return new admin();
+            break;
+    }
+}
+
+let superAdmin = factory('superAdmin');
+
