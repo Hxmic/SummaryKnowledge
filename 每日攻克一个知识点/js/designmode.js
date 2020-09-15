@@ -1,5 +1,5 @@
 // 2020年9月5日
-
+// 原文地址 https://juejin.im/post/6868054744557060110?utm_source=gold_browser_extension
 // 设计原则
 // 单一职责原则（SRP）
 // 一个对象或方法只做一件事情。如果一个方法承担了过多的职责，那么在需求的变迁过程中，需要改写这个方法的可能性就越大。
@@ -227,26 +227,200 @@ var car3 = new CarChild("牌子C", 3000);
 console.log(car3); // CarChild {brand: "牌子C", price: 3000}
 console.log(car3.sellCar()); // 牌子C的车子售价：3000元人民币，限速50公里每小时
 
-function factory(role) {
-    function superAdmin() {
-        this.name = 'superAdmin';
-        this.viewPage = ['首页', '发现页', '应用数据']
-    }
-
-    function admin() {
-        this.name = 'admin';
-        this.viewPage = ['首页', '发现页', '应用数据']
-    }
-
-    switch(role) {
-        case 'superAdmin':
-            return new superAdmin();
-            break;
-        case 'admin':
-            return new admin();
-            break;
+class User {
+    constructor(role, name) {
+        this.name = name;
+        this.role = role;
     }
 }
 
-let superAdmin = factory('superAdmin');
+class Admin {
+    constructor(role, name) {
+        this.name = name;
+        this.role = role;
+    }
+}
 
+class SuperAdmin {
+    constructor(role, name) {
+        this.name = name;
+        this.role = role;
+    }
+}
+
+class RoleFactory {
+    static createUser(role) {
+        if (role === 'user') {
+            return new User(role,'用户')
+        } else if (role === 'admin') {
+            return new Admin(role, '管理员')
+        } else if (role === 'superadmin') {
+            return new SuperAdmin(role, '超级管理员')
+        }
+    }
+}
+
+// 抽象工厂方法
+class Factory {
+    createUserParser() {
+        throw new Error('抽象类只能继承，不能实现')
+    }
+
+    createLoginParser() {
+        throw new Error('抽象类只能继承，不能实现')
+    }
+}
+
+class UserParser extends Factory {
+    createUserParser(role, name) {
+        return new UserFactory(role, name)
+    }
+    createLoginParser(type) {
+        if (type === 'email'){
+            return new UserEmail()
+        } else if (type === 'phone') {
+            return new UserPhone()
+        }
+    }
+}
+
+class AdminParser extends Factory {
+    createUserParser(role, name) {
+        return new AdminFactory(role, name)
+    }
+
+    createLoginParser(type) {
+        if (type === 'email'){
+            return new UserEmail()
+        } else if (type === 'phone') {
+            return new UserPhone()
+        }
+    }
+}
+
+// 除了刚刚提到的这几种情况之外，如果创建对象的逻辑并不复杂，那我们就直接通过 new 来创建对象就可以了，不需要使用工厂模式。
+// 现在，我们上升一个思维层面来看工厂模式，它的作用无外乎下面这四个。这也是判断要不要使用工厂模式的最本质的参考标准。
+
+// 封装变化：创建逻辑有可能变化，封装成工厂类之后，创建逻辑的变更对调用者透明。
+// 代码复用：创建代码抽离到独立的工厂类之后可以复用。
+// 隔离复杂性：封装复杂的创建逻辑，调用者无需了解如何创建对象。
+// 控制复杂度：将创建代码抽离出来，让原本的函数或类职责更单一，代码更简洁。
+
+
+// 建造者模式
+// 将一个复杂的对象分解成多个简单的对象来进行构建，将复杂的构建层与表示层分离，使得相同的构建过程可以创建不同的表示的模式便是建造者模式。
+
+// 原型模式
+// 如果对象的创建成本比较大，而同一个类的不同对象之间差别不大（大部分字段都相同），在这种情况下，我们可以利用对已有对象（原型）进行复制（或者叫拷贝）的方式来创建新对象，以达到节省创建时间的目的。这种基于原型来创建对象的方式就叫作原型设计模式（Prototype Design Pattern），简称原型模式。
+
+// 代理模式
+
+// 虚拟代理
+class MyImg {
+    static imgNode = document.createElement('img');
+    constructor(selector) {
+        selector.appendChild(this.imgNode);
+    }
+
+    setSrc(src) {
+        this.imgNode = src;
+    }
+} 
+class ProxyMyImg {
+    static src = '.gif';
+
+    constructor(selector) {
+        this.img = new Image;
+        this.myImg = new MyImg(selector);
+        this.myImg.setSrc(this.src)
+    }
+
+    setSrc(src) {
+        this.img.src = src;
+        this.img.onload = () => {
+            this.myImg.setSrc(src);
+        }
+    }
+}
+// ProxyMyImg控制了客户对MyImg的访问，并且在此过程中加入一些额外的操作，比如在图片加载好之前，先把img节点的src设置为一张本地的loading图片。
+// 这样做的好处是把添加img节点和设置预加载给解耦了，每个类都去一个任务，这是符合单一职责原则的。如果有一天网速足够快了，完全不需要预加载，我们直接去掉代理就可以了，这也是符合开闭原则的。
+
+// 缓存代理
+
+// 缓存代理可以为一些开销大的运算结果提供暂时的缓存，在下次运算时，如果传递进来的参数跟之前一致，则可以直接返回缓存好的运算结果。
+// 比如我们有一个计算乘积的函数
+
+// 缓存代理函数
+const mult = (...args) => {
+    console.log('multing...');
+    let res = 1;
+    args.forEach(item => {
+        res *=item;
+    })
+
+    return res
+}
+const proxyMult = (() => {
+    const cache = {};
+    return (...args) => {
+        const key = [].join.call(args, ',')
+
+        if (key in cache) {
+            return cache[args];
+        }
+
+        return cache[key] = mult.apply(null, args)
+    }
+})();
+
+proxyMult(1, 2, 3, 4);
+
+const handler = {
+    cache: {},
+    apply: function(target, thisArg, args) {
+        const key = [].join.call(args, ',')
+        if (key in this.cache) {
+            return this.cache[key]
+        }
+        return this.cache[key] = target(args)
+    }
+}
+
+const proxyMult = new Proxy(mult, handler);
+proxyMult(1, 2, 3, 4)
+
+// 装饰着模式
+
+// 适配器模式
+
+class GooleMap {
+    show() {
+        console.log('渲染地图');
+    }
+}
+
+class BaiduMap {
+    display() {
+        console.log('渲染地图')
+    }
+}
+class GaodeMap {
+    show() {
+        console.log('渲染地图')
+    }
+}
+
+class BaiduAdaapterMap {
+    show() {
+        return new BaiduMap().display();
+    }
+}
+
+// 所以适配器模式应用场景一般为
+
+// 统一多个类的接口设计
+// 替换依赖的外部系统
+// 兼容老版本接口
+// 适配不同格式的数据
+
+// 观察者模式
